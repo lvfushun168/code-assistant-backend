@@ -1,5 +1,6 @@
 package com.lfs.codeassistantbackend.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.*;
 
 
@@ -11,6 +12,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @Data
+@TableName("user")
 public class UserEntity extends BaseEntity{
 
     private Long id;
