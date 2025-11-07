@@ -75,7 +75,7 @@ docker build -t "${IMAGE_NAME}:${IMAGE_TAG}" .
     echo "正在运行 Docker 容器..."
     # 创建宿主机日志目录（如果不存在）
     mkdir -p "${PROJECT_DIR}/logs"
-    docker run -d --name "${APP_NAME}" -p "${HOST_PORT}:${CONTAINER_PORT}" -v "${PROJECT_DIR}/logs:/app/logs" "${IMAGE_NAME}:${IMAGE_TAG}"
+    docker run -d --name "${APP_NAME}" -p "${HOST_PORT}:${CONTAINER_PORT}" -v "${PROJECT_DIR}/logs:/app/logs" -e MYSQL_PASSWORD=123456 "${IMAGE_NAME}:${IMAGE_TAG}"
 
 # 清理构建上下文目录rm -rf "${BUILD_CONTEXT_DIR}"
 
