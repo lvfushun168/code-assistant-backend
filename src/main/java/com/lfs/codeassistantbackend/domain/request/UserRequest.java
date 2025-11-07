@@ -19,4 +19,7 @@ public class UserRequest {
     private String nickname;
 
     private String phoneNum;
+
+    @NotBlank(message = "验证码不能为空")
+    private String captcha;
 }

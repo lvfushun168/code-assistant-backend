@@ -10,12 +10,24 @@ import com.lfs.codeassistantbackend.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
 @Service
 @AllArgsConstructor
 public class AccountService {
     UserRepository userRepository;
+    HttpServletRequest httpServletRequest;
 
     public void register(UserRequest request) {
+        HttpSession session = httpServletRequest.getSession();
+        String captchaCode = (String) session.getAttribute("captchaCode");
+        if (captchaCode == null || !captchaCode.equalsIgnoreCase(request.getCaptcha())) {
+            throw new BizException("验证码错误");
+        }
         String username = request.getUsername().trim();
         boolean exists = userRepository.exists(new LambdaQueryWrapper<UserEntity>().eq(UserEntity::getUsername, username));
         if (exists) throw new BizException("用户已存在");
