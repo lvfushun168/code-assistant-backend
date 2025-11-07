@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.lfs.codeassistantbackend.domain.request.LoginRequest;
+
 /**
  * 用户账户
  */
@@ -29,6 +31,16 @@ public class AccountController {
     public Result<?> register(@RequestBody @Validated UserRequest request) {
         accountService.register(request);
         return Result.success();
+    }
+
+    /**
+     * 用户登录
+     * @param request 登录信息
+     * @return token
+     */
+    @PostMapping("/login")
+    public Result<String> login(@RequestBody @Validated LoginRequest request) {
+        return Result.success(accountService.login(request));
     }
 
 }

@@ -13,18 +13,30 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import com.lfs.codeassistantbackend.config.JwtUtil;
+import com.lfs.codeassistantbackend.domain.request.LoginRequest;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import javax.servlet.http.Cookie;
+import java.util.Arrays;
 
 @Service
 @AllArgsConstructor
 public class AccountService {
-    UserRepository userRepository;
-    HttpServletRequest httpServletRequest;
+    private final UserRepository userRepository;
+    private final HttpServletRequest httpServletRequest;
+    private final AuthenticationManager authenticationManager;
+    private final UserDetailsService userDetailsService;
+    private final JwtUtil jwtUtil;
+    private final PasswordEncoder passwordEncoder;
+
 
     public void register(UserRequest request) {
-        HttpSession session = httpServletRequest.getSession();
-        String captchaCode = (String) session.getAttribute("captchaCode");
+        String captchaCode = getCaptchaCodeFromCookie();
         if (captchaCode == null || !captchaCode.equalsIgnoreCase(request.getCaptcha())) {
             throw new BizException("验证码错误");
         }
@@ -33,6 +45,27 @@ public class AccountService {
         if (exists) throw new BizException("用户已存在");
         UserEntity user = new UserEntity();
         BeanUtil.copyProperties(request, user, CopyOptions.create().setIgnoreNullValue(true));
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
         userRepository.insert(user);
+    }
+
+    public String login(LoginRequest request) {
+        String captchaCode = getCaptchaCodeFromCookie();
+        if (captchaCode == null || !captchaCode.equalsIgnoreCase(request.getCaptcha())) {
+            throw new BizException("验证码错误");
+        }
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+        );
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
+        return jwtUtil.generateToken(userDetails);
+    }
+
+    private String getCaptchaCodeFromCookie() {
+        return Arrays.stream(httpServletRequest.getCookies())
+                .filter(cookie -> "captchaCode".equals(cookie.getName()))
+                .map(Cookie::getValue)
+                .findFirst()
+                .orElse(null);
     }
 }
