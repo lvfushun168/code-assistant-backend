@@ -10,7 +10,7 @@ APP_NAME="code-assistant-backend"
 HOST_PORT=8080
 # 容器内应用程序运行的端口
 CONTAINER_PORT=8080
-# 您在服务器上上传 JAR 文件的目录
+# 服务器上传 JAR 文件的目录
 PROJECT_DIR="/lfs/project"
 # Docker 镜像的名称
 IMAGE_NAME="lfs/${APP_NAME}"
@@ -79,4 +79,4 @@ docker run -d --name "${APP_NAME}" -p "${HOST_PORT}:${CONTAINER_PORT}" "${IMAGE_
 rm -rf "${BUILD_CONTEXT_DIR}"
 
 echo "部署成功！"
-echo "应用程序现在可以通过 http://<your-server-ip>:${HOST_PORT} 访问"
+echo "应用程序现在可以通过 http://8.148.146.195:${HOST_PORT} 访问"
