@@ -11,7 +11,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 import com.lfs.codeassistantbackend.config.JwtUtil;
 import com.lfs.codeassistantbackend.domain.request.LoginRequest;
@@ -24,6 +23,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import javax.servlet.http.Cookie;
 import java.util.Arrays;
 
+import cn.hutool.crypto.digest.DigestUtil;
+import com.google.common.cache.Cache;
+
 @Service
 @AllArgsConstructor
 public class AccountService {
@@ -33,6 +35,7 @@ public class AccountService {
     private final UserDetailsService userDetailsService;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
+    private final Cache<String, Object> nonceCache;
 
 
     public void register(UserRequest request) {
@@ -45,23 +48,40 @@ public class AccountService {
         if (exists) throw new BizException("用户已存在");
         UserEntity user = new UserEntity();
         BeanUtil.copyProperties(request, user, CopyOptions.create().setIgnoreNullValue(true));
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setPassword(passwordEncoder.encode(DigestUtil.sha256Hex(request.getPassword())));
         userRepository.insert(user);
     }
 
     public String login(LoginRequest request) {
+        // 验证码校验
         String captchaCode = getCaptchaCodeFromCookie();
         if (captchaCode == null || !captchaCode.equalsIgnoreCase(request.getCaptcha())) {
             throw new BizException("验证码错误");
         }
+
+        // 时间戳校验
+        long timestamp = Long.parseLong(request.getTimestamp());
+        if (System.currentTimeMillis() - timestamp > 1000 * 60 * 5) { // 5 minutes
+            throw new BizException("请求超时");
+        }
+
+        // nonce校验
+        if (nonceCache.getIfPresent(request.getNonce()) != null) {
+            throw new BizException("重复的请求");
+        }
+        nonceCache.put(request.getNonce(), true);
+
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+                new UsernamePasswordAuthenticationToken(request.getUsername(), DigestUtil.sha256Hex(request.getPassword()))
         );
         final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
         return jwtUtil.generateToken(userDetails);
     }
 
     private String getCaptchaCodeFromCookie() {
+        if (httpServletRequest.getCookies() == null) {
+            return null;
+        }
         return Arrays.stream(httpServletRequest.getCookies())
                 .filter(cookie -> "captchaCode".equals(cookie.getName()))
                 .map(Cookie::getValue)
