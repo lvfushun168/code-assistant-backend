@@ -9,7 +9,7 @@ APP_NAME="code-assistant-backend"
 # 映射到主机的端口
 HOST_PORT=8080
 # 容器内应用程序运行的端口
-CONTAINER_PORT=8080
+CONTAINER_PORT=6324
 # 服务器上传 JAR 文件的目录
 PROJECT_DIR="/lfs/project"
 # Docker 镜像的名称
