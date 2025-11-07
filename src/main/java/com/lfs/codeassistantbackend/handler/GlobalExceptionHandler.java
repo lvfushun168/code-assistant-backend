@@ -22,10 +22,16 @@ public class GlobalExceptionHandler {
     }
 
 
+    /**
+     * 请求参数校验
+     * @param e 校验
+     * @return 统一返回结果
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Result<?> handleBizException(MethodArgumentNotValidException e) {
-        log.error(e.getMessage());
-        return Result.error(400, e.getMessage());
+    public Result<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        String message = e.getBindingResult().getFieldError().getDefaultMessage();
+        log.error(message);
+        return Result.error(400, message);
     }
 
     /**
