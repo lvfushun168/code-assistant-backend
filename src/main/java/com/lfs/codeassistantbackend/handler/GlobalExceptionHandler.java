@@ -4,6 +4,7 @@ import com.lfs.codeassistantbackend.common.Result;
 import com.lfs.codeassistantbackend.exception.BizException;
 import com.lfs.codeassistantbackend.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -18,6 +19,13 @@ public class GlobalExceptionHandler {
     public Result<?> handleBizException(BizException e) {
         log.error("业务异常: {}", e.getMessage());
         return Result.error(e.getCode(), e.getMessage());
+    }
+
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Result<?> handleBizException(MethodArgumentNotValidException e) {
+        log.error(e.getMessage());
+        return Result.error(400, e.getMessage());
     }
 
     /**

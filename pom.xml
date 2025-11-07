@@ -80,6 +80,19 @@
             <version>1.18.24</version>
             <scope>provided</scope>
         </dependency>
+        <!-- javax.validation.constraints -->
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <version>2.0.1.Final</version>
+        </dependency>
+        <!-- Hibernate Validator 实现 -->
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>6.2.0.Final</version>
+        </dependency>
+
 
         <!-- SLF4J 日志 -->
         <dependency>
