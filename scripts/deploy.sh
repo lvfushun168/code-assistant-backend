@@ -72,11 +72,12 @@ echo "正在构建 Docker 镜像 ${IMAGE_NAME}:${IMAGE_TAG}..."
 docker build -t "${IMAGE_NAME}:${IMAGE_TAG}" .
 
 # 运行 Docker 容器
-echo "正在运行 Docker 容器..."
-docker run -d --name "${APP_NAME}" -p "${HOST_PORT}:${CONTAINER_PORT}" "${IMAGE_NAME}:${IMAGE_TAG}"
+    echo "正在运行 Docker 容器..."
+    # 创建宿主机日志目录（如果不存在）
+    mkdir -p "${PROJECT_DIR}/logs"
+    docker run -d --name "${APP_NAME}" -p "${HOST_PORT}:${CONTAINER_PORT}" -v "${PROJECT_DIR}/logs:/app/logs" "${IMAGE_NAME}:${IMAGE_TAG}"
 
-# 清理构建上下文目录
-rm -rf "${BUILD_CONTEXT_DIR}"
+# 清理构建上下文目录rm -rf "${BUILD_CONTEXT_DIR}"
 
 echo "部署成功！"
 echo "应用程序现在可以通过 http://8.148.146.195:${HOST_PORT} 访问"
