@@ -14,6 +14,9 @@ RUN ./mvnw package -DskipTests
 # 使用更小的 JRE 镜像作为最终的运行环境
 FROM openjdk:11-jre-slim
 
+# 安装字体配置
+RUN apt-get update && apt-get install -y fontconfig
+
 # 设置工作目录
 WORKDIR /app
 
