@@ -27,6 +27,27 @@ echo "开始部署 ${APP_NAME}..."
 if ! docker ps -f name=^/registry$ --format '{{.Names}}' | grep -q registry; then
     echo "正在启动本地 Docker 仓库..."
     docker run -d -p 5000:5000 --restart=always --name registry registry:2
+    sleep 5 # 等待仓库启动
+fi
+
+# --- 准备基础镜像 ---
+BASE_IMAGE_NAME="openjdk:11-jdk"
+LOCAL_BASE_IMAGE_NAME="${REGISTRY_HOST}/library/${BASE_IMAGE_NAME}"
+
+# 检查基础镜像是否已在本地仓库
+if ! docker manifest inspect "${LOCAL_BASE_IMAGE_NAME}" > /dev/null 2>&1; then
+    echo "本地仓库中未找到基础镜像 ${LOCAL_BASE_IMAGE_NAME}。"
+    echo "正在从 Docker Hub 拉取 ${BASE_IMAGE_NAME}..."
+    docker pull "${BASE_IMAGE_NAME}"
+
+    echo "正在为基础镜像打上本地仓库标签..."
+    docker tag "${BASE_IMAGE_NAME}" "${LOCAL_BASE_IMAGE_NAME}"
+
+    echo "正在将基础镜像推送到本地仓库..."
+    docker push "${LOCAL_BASE_IMAGE_NAME}"
+    echo "基础镜像准备完成。"
+else
+    echo "基础镜像 ${LOCAL_BASE_IMAGE_NAME} 已存在于本地仓库。"
 fi
 
 # 检查是否提供了 JAR 文件路径

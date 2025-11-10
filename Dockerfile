@@ -1,5 +1,5 @@
-# 使用 OpenJDK 11 JDK 镜像作为运行环境
-FROM openjdk:11-jdk
+# 使用本地仓库的 OpenJDK 11 JDK 镜像作为运行环境
+FROM localhost:5000/library/openjdk:11-jdk
 
 # 设置工作目录
 WORKDIR /app
