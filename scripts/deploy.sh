@@ -12,14 +12,22 @@ HOST_PORT=8080
 CONTAINER_PORT=6324
 # 服务器上传 JAR 文件的目录
 PROJECT_DIR="/lfs/project"
+# 本地 Docker 仓库的地址
+REGISTRY_HOST="localhost:5000"
 # Docker 镜像的名称
-IMAGE_NAME="lfs/${APP_NAME}"
+IMAGE_NAME="${REGISTRY_HOST}/lfs/${APP_NAME}"
 # Docker 镜像的标签
 IMAGE_TAG="latest"
 
 # --- 部署 ---
 
 echo "开始部署 ${APP_NAME}..."
+
+# 启动本地 Docker 仓库（如果尚未运行）
+if ! docker ps -f name=^/registry$ --format '{{.Names}}' | grep -q registry; then
+    echo "正在启动本地 Docker 仓库..."
+    docker run -d -p 5000:5000 --restart=always --name registry registry:2
+fi
 
 # 检查是否提供了 JAR 文件路径
 if [ -z "$1" ]; then
@@ -40,15 +48,7 @@ BUILD_CONTEXT_DIR=$(mktemp -d)
 
 # 将 JAR 文件和 Dockerfile 复制到构建上下文目录
 cp "${JAR_PATH}" "${BUILD_CONTEXT_DIR}/app.jar"
-
-# 在构建上下文目录中创建一个简单的 Dockerfile
-cat <<EOF > "${BUILD_CONTEXT_DIR}/Dockerfile"
-FROM openjdk:11-jre-slim
-WORKDIR /app
-COPY app.jar app.jar
-EXPOSE ${CONTAINER_PORT}
-ENTRYPOINT ["java","-jar","app.jar"]
-EOF
+cp "Dockerfile" "${BUILD_CONTEXT_DIR}/Dockerfile"
 
 
 # 进入构建上下文目录
@@ -71,13 +71,18 @@ fi
 echo "正在构建 Docker 镜像 ${IMAGE_NAME}:${IMAGE_TAG}..."
 docker build -t "${IMAGE_NAME}:${IMAGE_TAG}" .
 
+# 推送镜像到本地仓库
+echo "正在推送镜像到本地仓库..."
+docker push "${IMAGE_NAME}:${IMAGE_TAG}"
+
 # 运行 Docker 容器
     echo "正在运行 Docker 容器..."
     # 创建宿主机日志目录（如果不存在）
     mkdir -p "${PROJECT_DIR}/logs"
     docker run -d --name "${APP_NAME}" -p "${HOST_PORT}:${CONTAINER_PORT}" -v "${PROJECT_DIR}/logs:/app/logs" -e MYSQL_PASSWORD=123456 "${IMAGE_NAME}:${IMAGE_TAG}"
 
-# 清理构建上下文目录rm -rf "${BUILD_CONTEXT_DIR}"
+# 清理构建上下文目录
+rm -rf "${BUILD_CONTEXT_DIR}"
 
 echo "部署成功！"
 echo "应用程序现在可以通过 http://8.148.146.195:${HOST_PORT} 访问"
