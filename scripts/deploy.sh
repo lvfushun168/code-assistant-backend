@@ -23,7 +23,7 @@ echo "开始部署 ${APP_NAME}..."
 
 # 检查是否提供了 JAR 文件路径
 if [ -z "$1" ]; then
-  echo "用法: $0 <your-app.jar 的路径>"
+  echo "用法: $0 <app.jar 的路径>"
   exit 1
 fi
 
@@ -55,7 +55,7 @@ EOF
 cd "${BUILD_CONTEXT_DIR}"
 
 # 如果容器正在运行，则停止并删除现有容器
-if [ $(docker ps -q -f name=^/${APP_NAME}$) ]; then
+if [ $(docker ps -a -q -f name=^/${APP_NAME}$) ]; then
     echo "正在停止并删除现有容器..."
     docker stop "${APP_NAME}"
     docker rm "${APP_NAME}"
