@@ -35,6 +35,15 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Spring Security 认证异常
+     */
+    @ExceptionHandler(org.springframework.security.authentication.BadCredentialsException.class)
+    public Result<?> handleBadCredentialsException(org.springframework.security.authentication.BadCredentialsException e) {
+        log.warn("认证失败: {}", e.getMessage());
+        return Result.error(ErrorCode.USER_CREDENTIALS_ERROR);
+    }
+
+    /**
      * 其他异常处理
      */
     @ExceptionHandler(Exception.class)
