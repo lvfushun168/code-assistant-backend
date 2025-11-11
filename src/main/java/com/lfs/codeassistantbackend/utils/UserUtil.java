@@ -12,10 +12,10 @@ public class UserUtil {
 
     //用户基础信息
     private static final ThreadLocal<UserDto> userInfo = new ThreadLocal<>();
-    private static UserDto getUserInfo() {
+    public static UserDto getUserInfo() {
         return userInfo.get();
     }
-    private static void setUserInfo(UserDto userDto) {
+    public static void setUserInfo(UserDto userDto) {
         userInfo.set(userDto);
     }
 }

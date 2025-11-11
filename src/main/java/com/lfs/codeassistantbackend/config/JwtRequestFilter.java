@@ -1,6 +1,11 @@
 package com.lfs.codeassistantbackend.config;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.lfs.codeassistantbackend.domain.dto.UserDto;
+import com.lfs.codeassistantbackend.domain.entity.UserEntity;
+import com.lfs.codeassistantbackend.repository.UserRepository;
 import com.lfs.codeassistantbackend.service.UserDetailsServiceImpl;
+import com.lfs.codeassistantbackend.utils.UserUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +28,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
 
+    private final UserRepository userRepository;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
         final String authorizationHeader = request.getHeader("Authorization");
@@ -35,16 +42,30 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             username = jwtUtil.extractUsername(jwt);
         }
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-            if (jwtUtil.validateToken(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                usernamePasswordAuthenticationToken
-                        .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+        try {
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+                if (jwtUtil.validateToken(jwt, userDetails)) {
+                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    usernamePasswordAuthenticationToken
+                            .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+
+                    UserEntity userEntity = userRepository.selectOne(new LambdaQueryWrapper<UserEntity>().eq(UserEntity::getUsername, username));
+                    if (userEntity != null) {
+                        UserDto userDto = UserDto.builder()
+                                .userId(userEntity.getId())
+                                .username(userEntity.getUsername())
+                                .nickname(userEntity.getNickname())
+                                .build();
+                        UserUtil.setUserInfo(userDto);
+                    }
+                }
             }
+            chain.doFilter(request, response);
+        } finally {
+            UserUtil.clearAll();
         }
-        chain.doFilter(request, response);
     }
 }
