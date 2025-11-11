@@ -36,6 +36,7 @@ public class AccountService {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
     private final Cache<String, Object> nonceCache;
+    private DirService dirService;
 
 
     public void register(UserRequest request) {
@@ -50,6 +51,8 @@ public class AccountService {
         BeanUtil.copyProperties(request, user, CopyOptions.create().setIgnoreNullValue(true));
         user.setPassword(passwordEncoder.encode(DigestUtil.sha256Hex(request.getPassword())));
         userRepository.insert(user);
+        //初始化用户目录
+        dirService.init(user);
     }
 
     public String login(LoginRequest request) {
