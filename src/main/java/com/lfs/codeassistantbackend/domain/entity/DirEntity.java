@@ -1,17 +1,15 @@
 package com.lfs.codeassistantbackend.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Data
 @TableName(value = "dir")
-public class DirEntity {
+public class DirEntity extends BaseEntity{
 
     /**
      * id

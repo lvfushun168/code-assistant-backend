@@ -2,6 +2,7 @@ package com.lfs.codeassistantbackend.service;
 
 import com.lfs.codeassistantbackend.domain.entity.DirEntity;
 import com.lfs.codeassistantbackend.domain.entity.UserEntity;
+import com.lfs.codeassistantbackend.domain.response.DirTreeResponse;
 import com.lfs.codeassistantbackend.repository.DirRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,5 +23,14 @@ public class DirService {
                 .userId(user.getId())
                 .build());
     }
+
+    /**
+     * 获取当前用户的目录树
+     * @return 目录树
+     */
+    public DirTreeResponse getTree(){
+        return null;
+    }
+
 
 }
