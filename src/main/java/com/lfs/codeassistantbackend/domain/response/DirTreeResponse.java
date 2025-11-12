@@ -21,6 +21,11 @@ public class DirTreeResponse {
     private Long id;
 
     /**
+     * 父id
+     */
+    private Long parentId;
+
+    /**
      * 目录名
      */
     private String name;
