@@ -18,5 +18,5 @@ public class ContentEntity extends BaseEntity{
     private String content;
 
     //用户id
-    private String creator;
+    private Long creator;
 }

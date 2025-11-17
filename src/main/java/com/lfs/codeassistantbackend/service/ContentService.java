@@ -7,6 +7,7 @@ import com.lfs.codeassistantbackend.domain.request.ContentRequest;
 import com.lfs.codeassistantbackend.domain.response.ContentResponse;
 import com.lfs.codeassistantbackend.exception.BizException;
 import com.lfs.codeassistantbackend.repository.ContentRepository;
+import com.lfs.codeassistantbackend.utils.UserUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,7 @@ public class ContentService {
             throw new BizException("文档已存在");
         }
         ContentEntity contentEntity = BeanUtil.copyProperties(request, ContentEntity.class);
+        contentEntity.setCreator(UserUtil.getUserInfo().getUserId());
         contentRepository.insert(contentEntity);
     }
 

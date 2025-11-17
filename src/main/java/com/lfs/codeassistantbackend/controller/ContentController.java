@@ -2,6 +2,7 @@ package com.lfs.codeassistantbackend.controller;
 
 import com.lfs.codeassistantbackend.common.Result;
 import com.lfs.codeassistantbackend.domain.request.ContentRequest;
+import com.lfs.codeassistantbackend.domain.request.group.Update;
 import com.lfs.codeassistantbackend.service.ContentService;
 import lombok.AllArgsConstructor;
 import org.springframework.validation.annotation.Validated;
@@ -30,7 +31,7 @@ public class ContentController {
      * @return 操作结果
      */
     @PutMapping
-    public Result<?> update(@RequestBody @Validated ContentRequest request){
+    public Result<?> update(@RequestBody @Validated(Update.class) ContentRequest request){
         contentService.update(request);
         return Result.success();
     }
