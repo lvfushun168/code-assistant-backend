@@ -51,7 +51,7 @@ public class DirController {
      * @param id 目录ID
      * @return 操作结果
      */
-    @PutMapping("/{id}")
+    @DeleteMapping("/{id}")
     public Result<?> delete(@PathVariable String id){
         dirService.delete(Long.valueOf(id));
         return Result.success();
