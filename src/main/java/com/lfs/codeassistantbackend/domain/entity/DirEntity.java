@@ -12,11 +12,6 @@ import lombok.*;
 public class DirEntity extends BaseEntity{
 
     /**
-     * id
-     */
-    private Long id;
-
-    /**
      * 目录名
      */
     private String name;

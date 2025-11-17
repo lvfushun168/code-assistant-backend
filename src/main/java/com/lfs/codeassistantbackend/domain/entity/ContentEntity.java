@@ -11,8 +11,6 @@ import lombok.*;
 @TableName("prompt")
 public class ContentEntity extends BaseEntity{
 
-    private Long id;
-
     private Long dirId;
 
     private String title;
