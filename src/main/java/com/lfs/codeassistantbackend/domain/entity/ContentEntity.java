@@ -8,7 +8,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @Data
-@TableName("prompt")
+@TableName("content")
 public class ContentEntity extends BaseEntity{
 
     private Long dirId;
