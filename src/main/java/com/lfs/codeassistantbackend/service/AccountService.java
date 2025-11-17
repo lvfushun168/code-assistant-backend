@@ -8,6 +8,7 @@ import com.lfs.codeassistantbackend.domain.entity.UserEntity;
 import com.lfs.codeassistantbackend.exception.BizException;
 import com.lfs.codeassistantbackend.repository.UserRepository;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -40,10 +41,7 @@ public class AccountService {
 
 
     public void register(UserRequest request) {
-        String captchaCode = getCaptchaCodeFromCookie();
-        if (captchaCode == null || !captchaCode.equalsIgnoreCase(request.getCaptcha())) {
-            throw new BizException("验证码错误");
-        }
+        this.checkCaptcha(request.getCaptcha());
         String username = request.getUsername().trim();
         boolean exists = userRepository.exists(new LambdaQueryWrapper<UserEntity>().eq(UserEntity::getUsername, username));
         if (exists) throw new BizException("用户已存在");
@@ -55,13 +53,25 @@ public class AccountService {
         dirService.init(user);
     }
 
+    /**
+     * 验证码校验（仅Linux环境）
+     * @param captcha 用户输入的验证码
+     */
+    private void checkCaptcha(String captcha) {
+        if (System.getProperty("os.name").contains("Linux")) {
+            String captchaCode = getCaptchaCodeFromCookie();
+            if (StringUtils.isEmpty(captcha)) {
+                throw new BizException("验证码不能为空");
+            }
+            if (captchaCode == null || !captchaCode.equalsIgnoreCase(captcha)) {
+                throw new BizException("验证码错误");
+            }
+        }
+    }
+
     public String login(LoginRequest request) {
         // 验证码校验
-        String captchaCode = getCaptchaCodeFromCookie();
-        if (captchaCode == null || !captchaCode.equalsIgnoreCase(request.getCaptcha())) {
-            throw new BizException("验证码错误");
-        }
-
+        this.checkCaptcha(request.getCaptcha());
         // 时间戳校验
         long timestamp = Long.parseLong(request.getTimestamp());
         if (System.currentTimeMillis() - timestamp > 1000 * 60 * 5) { // 5 minutes
