@@ -9,7 +9,8 @@ public enum ErrorCode {
     SYSTEM_ERROR(500, "系统异常"),
     NOT_FOUND(404, "请求地址不存在"),
     PARAMETER_ERROR(400, "请求参数错误"),
-    UNAUTHORIZED(401, "没有权限"),
+    UNAUTHORIZED(401, "未登陆"),
+    FORBIDDEN(403, "没有权限"),
     USER_CREDENTIALS_ERROR(401, "用户名或密码错误"),
     OPERATION_ERROR(500, "操作失败");
 
