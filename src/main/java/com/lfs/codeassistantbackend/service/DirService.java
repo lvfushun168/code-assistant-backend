@@ -99,6 +99,14 @@ public class DirService {
      * @param request 目录请求
      */
     public void create(DirRequest request){
+        boolean exists = dirRepository.exists(new LambdaQueryWrapper<DirEntity>()
+                .eq(DirEntity::getUserId, UserUtil.getUserInfo().getUserId())
+                .eq(DirEntity::getParentId, request.getParentId())
+                .eq(DirEntity::getName, request.getName())
+        );
+        if (exists) {
+            throw new BizException("目录名称已存在");
+        }
         dirRepository.insert(DirEntity.builder()
                 .name(request.getName())
                 .parentId(request.getParentId())
@@ -117,6 +125,7 @@ public class DirService {
         }
         boolean exists = dirRepository.exists(new LambdaQueryWrapper<DirEntity>()
                 .eq(DirEntity::getUserId, UserUtil.getUserInfo().getUserId())
+                .eq(DirEntity::getParentId, dirEntity.getParentId())
                 .eq(DirEntity::getName, request.getName())
                 .ne(DirEntity::getId, request.getId())
         );
