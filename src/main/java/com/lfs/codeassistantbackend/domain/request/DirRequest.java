@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 /**
  * 目录修改请求
@@ -17,10 +18,10 @@ import javax.validation.constraints.NotBlank;
 @Data
 public class DirRequest {
 
-    @NotBlank(message = "目录ID不能为空", groups = Update.class)
+    @NotNull(message = "目录ID不能为空", groups = Update.class)
     private Long id;
 
-    @NotBlank(message = "父目录ID不能为空")
+    @NotNull(message = "父目录ID不能为空")
     private Long parentId;
 
     @NotBlank(message = "目录名称不能为空")
