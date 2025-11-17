@@ -6,23 +6,25 @@ import com.lfs.codeassistantbackend.domain.dto.UserDto;
 import com.lfs.codeassistantbackend.domain.entity.ContentEntity;
 import com.lfs.codeassistantbackend.domain.entity.DirEntity;
 import com.lfs.codeassistantbackend.domain.entity.UserEntity;
+import com.lfs.codeassistantbackend.domain.request.DirRequest;
 import com.lfs.codeassistantbackend.domain.response.ContentResponse;
 import com.lfs.codeassistantbackend.domain.response.DirTreeResponse;
+import com.lfs.codeassistantbackend.exception.BizException;
 import com.lfs.codeassistantbackend.repository.ContentRepository;
 import com.lfs.codeassistantbackend.repository.DirRepository;
 import com.lfs.codeassistantbackend.utils.UserUtil;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class DirService {
 
     private DirRepository dirRepository;
@@ -72,7 +74,7 @@ public class DirService {
         this.generateTree(root,
                 parentIdMap,
                 dirContentsMap);
-        return null;
+        return root;
     }
 
     /**
@@ -92,5 +94,55 @@ public class DirService {
         }
     }
 
+    /**
+     * 新建目录
+     * @param request 目录请求
+     */
+    public void create(DirRequest request){
+        dirRepository.insert(DirEntity.builder()
+                .name(request.getName())
+                .parentId(request.getParentId())
+                .userId(UserUtil.getUserInfo().getUserId())
+                .build());
+    }
+
+    /**
+     * 修改目录
+     * @param request 修改目录
+     */
+    public void update(DirRequest request){
+        DirEntity dirEntity = dirRepository.selectById(request.getId());
+        if (null == dirEntity) {
+            throw new BizException("目录不存在");
+        }
+        boolean exists = dirRepository.exists(new LambdaQueryWrapper<DirEntity>()
+                .eq(DirEntity::getUserId, UserUtil.getUserInfo().getUserId())
+                .eq(DirEntity::getName, request.getName())
+                .ne(DirEntity::getId, request.getId())
+        );
+        if (exists) {
+            throw new BizException("目录名称已存在");
+        }
+        dirEntity.setName(request.getName());
+        dirRepository.updateById(dirEntity);
+    }
+
+    /**
+     * 删除目录及其子目录，以及各目录下的文件
+     * @param id 目录id
+     */
+    public void delete(Long id) {
+        DirEntity dirEntity = dirRepository.selectById(id);
+        if (dirEntity.getParentId() == null) {
+            throw new BizException("根目录禁止删除");
+        }
+        // 获取所有要删除的目录ID
+        Set<DirEntity> subDirList = dirEntity.getSubDirList();
+        Set<Long> ids = subDirList.stream().map(DirEntity::getId).collect(Collectors.toSet());
+        // 删除目录下的文件
+        contentRepository.delete(new LambdaQueryWrapper<ContentEntity>().in(ContentEntity::getDirId, ids));
+        // 删除目录
+        dirRepository.deleteBatchIds(ids);
+    }
 
 }
