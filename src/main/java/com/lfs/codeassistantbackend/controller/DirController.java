@@ -30,9 +30,8 @@ public class DirController {
      * @return 操作结果
      */
     @PostMapping
-    public Result<?> create(@RequestBody @Validated DirRequest request){
-        dirService.create(request);
-        return Result.success();
+    public Result<DirTreeResponse> create(@RequestBody @Validated DirRequest request){
+        return Result.success(dirService.create(request));
     }
 
     /**
@@ -41,9 +40,8 @@ public class DirController {
      * @return 操作结果
      */
     @PutMapping
-    public Result<?> update(@RequestBody @Validated(Update.class) DirRequest request){
-        dirService.update(request);
-        return Result.success();
+    public Result<DirTreeResponse> update(@RequestBody @Validated(Update.class) DirRequest request){
+        return Result.success(dirService.update(request));
     }
 
     /**
