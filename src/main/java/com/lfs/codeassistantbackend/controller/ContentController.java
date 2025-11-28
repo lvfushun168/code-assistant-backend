@@ -5,8 +5,10 @@ import com.lfs.codeassistantbackend.domain.request.ContentRequest;
 import com.lfs.codeassistantbackend.domain.request.group.Update;
 import com.lfs.codeassistantbackend.service.ContentService;
 import lombok.AllArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @AllArgsConstructor
 @RestController
@@ -16,23 +18,25 @@ public class ContentController {
 
     /**
      * 创建文档
-     * @param request 文档请求体
+     * @param file 文件流
+     * @param request 元数据
      * @return 操作结果
      */
-    @PostMapping
-    public Result<?> create(@RequestBody @Validated ContentRequest request){
-        contentService.create(request);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Result<?> create(@RequestPart("file") MultipartFile file, @RequestPart("meta") @Validated ContentRequest request){
+        contentService.create(file, request);
         return Result.success();
     }
 
     /**
      * 更新文档
-     * @param request 文档请求体
+     * @param file 文件流(允许用户不更新文件，只更新元数据)
+     * @param request 元数据
      * @return 操作结果
      */
-    @PutMapping
-    public Result<?> update(@RequestBody @Validated(Update.class) ContentRequest request){
-        contentService.update(request);
+    @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Result<?> update(@RequestPart(value = "file", required = false) MultipartFile file, @RequestPart("meta") @Validated(Update.class) ContentRequest request){
+        contentService.update(file, request);
         return Result.success();
     }
 

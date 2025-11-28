@@ -19,6 +19,15 @@ IMAGE_NAME="${REGISTRY_HOST}/lfs/${APP_NAME}"
 # Docker 镜像的标签
 IMAGE_TAG="latest"
 
+# 宿主机存储路径配置
+HOST_DATA_DIR="/lfs/data/files"
+HOST_LOG_DIR="/lfs/logs"
+
+# 容器内部路径配置
+CONTAINER_DATA_DIR="/app/data/files"
+CONTAINER_LOG_DIR="/app/logs"
+
+
 # --- 部署 ---
 
 echo "开始部署 ${APP_NAME}..."
@@ -97,10 +106,16 @@ echo "正在推送镜像到本地仓库..."
 docker push "${IMAGE_NAME}:${IMAGE_TAG}"
 
 # 运行 Docker 容器
-    echo "正在运行 Docker 容器..."
-    # 创建宿主机日志目录（如果不存在）
-    mkdir -p "${PROJECT_DIR}/logs"
-    docker run -d --name "${APP_NAME}" -p "${HOST_PORT}:${CONTAINER_PORT}" -v "${PROJECT_DIR}/logs:/app/logs" -e MYSQL_PASSWORD=123456 "${IMAGE_NAME}:${IMAGE_TAG}"
+echo "正在运行 Docker 容器..."
+docker run -d \
+    --name "${APP_NAME}" \
+    --restart=always \
+    -p "${HOST_PORT}:${CONTAINER_PORT}" \
+    -v "${HOST_DATA_DIR}:${CONTAINER_DATA_DIR}" \
+    -v "${HOST_LOG_DIR}:${CONTAINER_LOG_DIR}" \
+    -e MYSQL_PASSWORD="YOUR_REAL_PASSWORD" \
+    -e SPRING_PROFILES_ACTIVE="prod" \
+    "${IMAGE_NAME}:${IMAGE_TAG}"
 
 # 清理构建上下文目录
 rm -rf "${BUILD_CONTEXT_DIR}"

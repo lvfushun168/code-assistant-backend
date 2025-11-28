@@ -39,3 +39,7 @@ mybatis-plus:
 jwt:
   secret: a7d9f8b3c2e1a6f0d9c8b7a6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e61145141919810
 
+app:
+  file:
+    storage-path: /app/data/files  # 容器内部的路径
+    aes-key: LfsCodeAssistKey1919810 # 必须修改为复杂的16位以上字符串

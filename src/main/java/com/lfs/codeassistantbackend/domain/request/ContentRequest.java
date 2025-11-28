@@ -21,7 +21,4 @@ public class ContentRequest {
 
     @NotBlank(message = "文档名不能为空")
     private String title;
-
-    @NotBlank(message = "文档内容不能为空")
-    private String content;
 }
