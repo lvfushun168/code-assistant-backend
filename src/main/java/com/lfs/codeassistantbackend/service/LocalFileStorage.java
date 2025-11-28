@@ -7,6 +7,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.crypto.symmetric.AES;
 import com.lfs.codeassistantbackend.exception.BizException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Component
+@Slf4j
 public class LocalFileStorage {
 
     @Value("${app.file.storage-path}")
@@ -56,6 +58,7 @@ public class LocalFileStorage {
         try (OutputStream out = FileUtil.getOutputStream(targetFile)) {
             aes.encrypt(inputStream, out, true);
         } catch (Exception e) {
+            log.error("文件写入失败!", e);
             throw new BizException("文件写入失败");
         }
 

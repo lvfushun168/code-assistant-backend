@@ -42,4 +42,4 @@ jwt:
 app:
   file:
     storage-path: /app/data/files  # 容器内部的路径
-    aes-key: LfsCodeAssistKey1919810 # 必须修改为复杂的16位以上字符串
+    aes-key: LfsCodeAssistKey1145141919810!@# # 必须16或32位
