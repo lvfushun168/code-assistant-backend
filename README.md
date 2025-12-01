@@ -16,7 +16,7 @@
 
 ## 准备工作
 
-在本地运行或部署此项目之前，请确保您的环境中已安装以下软件：
+在本地运行或部署此项目之前，请确保你的环境中已安装以下软件：
 
 1.  **JDK 11**: [Oracle JDK](https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html) 或 OpenJDK
 2.  **Maven 3.6+**: [Apache Maven](https://maven.apache.org/download.cgi)
@@ -27,7 +27,7 @@
 
 ## 本地开发环境运行
 
-按照以下步骤在您的本地机器上启动后端服务。
+按照以下步骤在你的本地机器上启动后端服务。
 
 ### 1. 克隆项目
 
@@ -38,10 +38,10 @@ cd code-assistant-backend
 
 ### 2. 配置并启动 MySQL
 
-您需要一个正在运行的 MySQL 8.0+ 实例。
+你需要一个正在运行的 MySQL 8.0+ 实例。
 
 -   **创建数据库**:
-    请在您的 MySQL 中创建一个名为 `lfs` 的数据库。
+    请在你的 MySQL 中创建一个名为 `lfs` 的数据库。
     ```sql
     CREATE DATABASE lfs CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
     ```
@@ -105,7 +105,7 @@ cd code-assistant-backend
     ```powershell
     $env:MYSQL_PASSWORD="your_mysql_password"
     ```
-您也可以在 IDE (如 IntelliJ IDEA) 的运行配置中直接设置此环境变量。
+你也可以在 IDE (如 IntelliJ IDEA) 的运行配置中直接设置此环境变量。
 
 ### 4. 运行应用程序
 
@@ -115,13 +115,13 @@ cd code-assistant-backend
 mvn spring-boot:run
 ```
 
-服务启动后，您可以通过 `http://localhost:6324/lfs-code-assistant` 访问 API。
+服务启动后，你可以通过 `http://localhost:6324/lfs-code-assistant` 访问 API。
 
 ---
 
 ## Docker 部署
 
-您也可以将此应用程序容器化部署。
+你也可以将此应用程序容器化部署。
 
 ### 1. 打包应用程序
 
@@ -161,10 +161,10 @@ docker build -t code-assistant-backend:latest .
 
 ### 4. 运行 Docker 容器
 
-使用以下命令启动容器。请将 `YOUR_MYSQL_PASSWORD` 替换为您的真实密码，并确保 `MYSQL_HOST` 指向您的 MySQL 服务器地址。
+使用以下命令启动容器。请将 `YOUR_MYSQL_PASSWORD` 替换为你的真实密码，并确保 `MYSQL_HOST` 指向你的 MySQL 服务器地址。
 
--   `172.17.0.1` 通常是 Docker 容器访问宿主机的 IP 地址。如果您的 MySQL 部署在其他服务器上，请替换为相应的 IP。
--   命令会创建并挂载 `/your/local/path/data` 和 `/your/local/path/logs` 目录用于持久化存储文件和日志。请替换为您希望的本地路径。
+-   `172.17.0.1` 通常是 Docker 容器访问宿主机的 IP 地址。如果你的 MySQL 部署在其他服务器上，请替换为相应的 IP。
+-   命令会创建并挂载 `/your/local/path/data` 和 `/your/local/path/logs` 目录用于持久化存储文件和日志。请替换为你希望的本地路径。
 
 ```bash
 docker run -d \
