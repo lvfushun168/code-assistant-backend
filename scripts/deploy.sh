@@ -44,8 +44,8 @@ BASE_IMAGE_NAME="openjdk:11-jdk"
 LOCAL_BASE_IMAGE_NAME="${REGISTRY_HOST}/library/${BASE_IMAGE_NAME}"
 
 # 检查基础镜像是否已在本地仓库
-if ! docker manifest inspect "${LOCAL_BASE_IMAGE_NAME}" > /dev/null 2>&1; then
-    echo "本地仓库中未找到基础镜像 ${LOCAL_BASE_IMAGE_NAME}。"
+if [[ "$(docker images -q ${LOCAL_BASE_IMAGE_NAME} 2> /dev/null)" == "" ]]; then
+    echo "本地docker中未找到基础镜像 ${LOCAL_BASE_IMAGE_NAME}。"
     echo "正在从 Docker Hub 拉取 ${BASE_IMAGE_NAME}..."
     docker pull "${BASE_IMAGE_NAME}"
 
