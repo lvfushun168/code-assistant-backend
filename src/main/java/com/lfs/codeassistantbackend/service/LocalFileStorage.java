@@ -5,11 +5,14 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.crypto.SecureUtil;
+import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.crypto.symmetric.AES;
 import com.lfs.codeassistantbackend.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import cn.hutool.crypto.Mode;
+import cn.hutool.crypto.Padding;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
@@ -32,9 +35,8 @@ public class LocalFileStorage {
 
     @PostConstruct
     public void init() {
-        // 初始化AES构建器，使用UTF-8编码密钥
-        this.aes = SecureUtil.aes(aesKeyStr.getBytes(StandardCharsets.UTF_8));
-        // 确保根目录存在
+        byte[] keyBytes = DigestUtil.sha256(aesKeyStr);
+        this.aes = new AES(Mode.ECB, Padding.PKCS5Padding, keyBytes);
         if (!FileUtil.exist(storageRootPath)) {
             FileUtil.mkdir(storageRootPath);
         }
