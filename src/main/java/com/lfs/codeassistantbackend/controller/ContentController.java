@@ -10,6 +10,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
+
 @AllArgsConstructor
 @RestController
 @RequestMapping("/content")
@@ -59,5 +61,15 @@ public class ContentController {
     @GetMapping("/{dirId}")
     public Result<?> list(@PathVariable String dirId){
         return Result.success(contentService.list(Long.valueOf(dirId)));
+    }
+
+
+    /**
+     * 下载文档
+     * @param id 文档ID
+     */
+    @GetMapping("/download/{id}")
+    public void download(@PathVariable String id, HttpServletResponse response) {
+        contentService.download(Long.valueOf(id), response);
     }
 }

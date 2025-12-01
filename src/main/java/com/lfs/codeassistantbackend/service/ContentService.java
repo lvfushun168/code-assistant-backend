@@ -14,8 +14,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import javax.servlet.http.HttpServletResponse;
+import java.net.URLEncoder;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -96,5 +99,32 @@ public class ContentService {
             BeanUtil.copyProperties(contentEntity, contentResponse);
             return contentResponse;
         }).collect(Collectors.toList());
+    }
+
+
+    public void download(Long id, HttpServletResponse response) {
+        // 查询数据库记录
+        ContentEntity content = contentRepository.selectById(id);
+        if (content == null) {
+            throw new BizException("文档记录不存在");
+        }
+        // TODO 可以在这里加权限校验，如：
+        // if (!content.getCreator().equals(UserUtil.getUserInfo().getUserId())) { ... }
+
+        // 设置响应头
+        try {
+            response.reset();
+            response.setContentType("application/octet-stream");
+            response.setCharacterEncoding("utf-8");
+            // 防止文件名中文乱码
+            String fileName = URLEncoder.encode(content.getTitle(), StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+            response.setHeader("Content-Disposition", "attachment;filename*=utf-8''" + fileName);
+            // 调用存储服务将流写回
+            localFileStorage.downloadToStream(content.getFilePath(), response.getOutputStream());
+        } catch (Exception e) {
+            log.error("下载出错", e);
+            // 注意：如果流已经开始写入，这里抛异常前端可能收到的是截断的文件
+            throw new BizException("下载出错");
+        }
     }
 }

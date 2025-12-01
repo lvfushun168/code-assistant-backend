@@ -42,6 +42,23 @@ public class LocalFileStorage {
         }
     }
 
+    /**
+     * 解密并写入输出流（用于下载）
+     * @param relativePath 相对路径
+     * @param outputStream 响应的输出流
+     */
+    public void downloadToStream(String relativePath, OutputStream outputStream) {
+        File file = FileUtil.file(storageRootPath, relativePath);
+        if (!FileUtil.exist(file)) {
+            throw new BizException("文件物理丢失");
+        }
+        try (InputStream fileInputStream = FileUtil.getInputStream(file)) {
+            aes.decrypt(fileInputStream, outputStream, true);
+        } catch (Exception e) {
+            log.error("文件流解密失败", e);
+            throw new BizException("文件下载失败");
+        }
+    }
 
     /**
      * 流式保存并加密
