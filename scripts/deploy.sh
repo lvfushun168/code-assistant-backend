@@ -114,6 +114,7 @@ docker run -d \
     -v "${HOST_DATA_DIR}:${CONTAINER_DATA_DIR}" \
     -v "${HOST_LOG_DIR}:${CONTAINER_LOG_DIR}" \
     -e MYSQL_PASSWORD="YOUR_REAL_PASSWORD" \
+    -e MYSQL_HOST="172.17.0.1" \
     -e SPRING_PROFILES_ACTIVE="prod" \
     "${IMAGE_NAME}:${IMAGE_TAG}"
 

@@ -11,4 +11,4 @@ COPY app.jar app.jar
 EXPOSE 6324
 
 # 运行应用程序
-ENTRYPOINT ["java","-Djava.awt.headless=true","-jar","app.jar"]
+ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
