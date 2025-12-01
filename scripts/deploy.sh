@@ -78,7 +78,7 @@ BUILD_CONTEXT_DIR=$(mktemp -d)
 
 # 将 JAR 文件和 Dockerfile 复制到构建上下文目录
 cp "${JAR_PATH}" "${BUILD_CONTEXT_DIR}/app.jar"
-cp "Dockerfile" "${BUILD_CONTEXT_DIR}/Dockerfile"
+cp "${PROJECT_DIR}/Dockerfile" "${BUILD_CONTEXT_DIR}/Dockerfile"
 
 
 # 进入构建上下文目录
