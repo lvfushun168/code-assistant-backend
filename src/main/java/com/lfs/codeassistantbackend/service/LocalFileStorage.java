@@ -49,7 +49,7 @@ public class LocalFileStorage {
     public String saveStream(InputStream inputStream) {
         // 生成路径
         String datePath = DateUtil.format(new Date(), DatePattern.PURE_DATE_PATTERN);
-        String fileName = IdUtil.simpleUUID() + ".lfs";
+        String fileName = IdUtil.fastSimpleUUID() + ".lfs";
         String relativePath = datePath + File.separator + fileName;
         File targetFile = FileUtil.file(storageRootPath, relativePath);
 
@@ -75,7 +75,7 @@ public class LocalFileStorage {
     public String saveContent(String content) {
         // 生成相对路径策略：yyyy/MM/dd/UUID.lfs
         String datePath = DateUtil.format(new Date(), DatePattern.PURE_DATE_PATTERN);
-        String fileName = IdUtil.simpleUUID() + ".lfs";
+        String fileName = IdUtil.fastSimpleUUID() + ".lfs";
         String relativePath = datePath + File.separator + fileName;
         
         // 拼接绝对路径
