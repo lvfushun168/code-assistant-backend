@@ -11,7 +11,7 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${MYSQL_HOST:8.148.146.195}:3336/lfs?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
-    username: root
+    username: lfs
     password: ${MYSQL_PASSWORD}
     hikari:
       minimum-idle: 10
