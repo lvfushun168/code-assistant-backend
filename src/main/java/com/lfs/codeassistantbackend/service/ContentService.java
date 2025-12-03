@@ -82,7 +82,7 @@ public class ContentService {
             }
         }
         contentRepository.updateById(contentEntity);
-        return id;
+        return contentEntity.getDirId();
     }
 
     public void delete(Long id) {
