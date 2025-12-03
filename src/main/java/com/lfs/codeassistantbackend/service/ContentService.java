@@ -30,7 +30,7 @@ public class ContentService {
     LocalFileStorage localFileStorage;
 
 
-    public void create(MultipartFile file, ContentRequest request) {
+    public Long create(MultipartFile file, ContentRequest request) {
         if (file == null || file.isEmpty()) throw new BizException("必须上传文档");
         boolean exists = contentRepository.exists(new LambdaQueryWrapper<ContentEntity>()
                 .eq(ContentEntity::getDirId, request.getDirId())
@@ -46,9 +46,10 @@ public class ContentService {
         }
         contentEntity.setCreator(UserUtil.getUserInfo().getUserId());
         contentRepository.insert(contentEntity);
+        return contentEntity.getId();
     }
 
-    public void update(MultipartFile file, ContentRequest request) {
+    public Long update(MultipartFile file, ContentRequest request) {
         Long id = request.getId();
         ContentEntity contentEntity = contentRepository.selectById(id);
         if (contentEntity == null) throw new BizException("文档不存在");
@@ -81,6 +82,7 @@ public class ContentService {
             }
         }
         contentRepository.updateById(contentEntity);
+        return id;
     }
 
     public void delete(Long id) {

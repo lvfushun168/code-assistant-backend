@@ -25,9 +25,8 @@ public class ContentController {
      * @return 操作结果
      */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Result<?> create(@RequestPart("file") MultipartFile file, @RequestPart("meta") @Validated ContentRequest request){
-        contentService.create(file, request);
-        return Result.success();
+    public Result<Long> create(@RequestPart("file") MultipartFile file, @RequestPart("meta") @Validated ContentRequest request){
+        return Result.success(contentService.create(file, request));
     }
 
     /**
@@ -37,9 +36,8 @@ public class ContentController {
      * @return 操作结果
      */
     @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Result<?> update(@RequestPart(value = "file", required = false) MultipartFile file, @RequestPart("meta") @Validated(Update.class) ContentRequest request){
-        contentService.update(file, request);
-        return Result.success();
+    public Result<Long> update(@RequestPart(value = "file", required = false) MultipartFile file, @RequestPart("meta") @Validated(Update.class) ContentRequest request){
+        return Result.success(contentService.update(file, request));
     }
 
     /**
