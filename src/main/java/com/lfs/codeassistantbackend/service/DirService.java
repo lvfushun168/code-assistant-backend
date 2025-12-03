@@ -86,6 +86,7 @@ public class DirService {
             throw new BizException("目录名称已存在");
         }
         dirEntity.setName(request.getName());
+        dirEntity.setParentId(request.getParentId());
         dirRepository.updateById(dirEntity);
         DirTreeResponse dirTreeResponse = BeanUtil.copyProperties(dirEntity, DirTreeResponse.class);
         return dirTreeResponse.getTree();
