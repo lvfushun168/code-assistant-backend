@@ -15,6 +15,11 @@ import lombok.NoArgsConstructor;
 public class ContentResponse {
 
     /**
+     * 文档id
+     */
+    private Long id;
+
+    /**
      * 目录id
      */
     private Long dirId;
@@ -24,8 +29,4 @@ public class ContentResponse {
      */
     private String title;
 
-    /**
-     * 文档内容
-     */
-    private String content;
 }
