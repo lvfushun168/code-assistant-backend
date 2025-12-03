@@ -108,8 +108,11 @@ public class ContentService {
         if (content == null) {
             throw new BizException("文档记录不存在");
         }
-        // TODO 可以在这里加权限校验，如：
-        // if (!content.getCreator().equals(UserUtil.getUserInfo().getUserId())) { ... }
+        // 仅可下载自己的文件
+        if (!content.getCreator().equals(UserUtil.getUserInfo().getUserId())) {
+            log.warn("用户{}尝试下载不属于自己的文件{}", UserUtil.getUserInfo().getUserId(), id);
+            throw new BizException("无权限下载该文档");
+        }
 
         // 设置响应头
         try {
