@@ -31,7 +31,7 @@ public class ContentService {
 
 
     public Long create(MultipartFile file, ContentRequest request) {
-        if (file == null || file.isEmpty()) throw new BizException("必须上传文档");
+        if (file == null) throw new BizException("必须上传文档");
         boolean exists = contentRepository.exists(new LambdaQueryWrapper<ContentEntity>()
                 .eq(ContentEntity::getDirId, request.getDirId())
                 .eq(ContentEntity::getTitle, request.getTitle()));
