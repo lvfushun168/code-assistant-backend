@@ -78,7 +78,7 @@ public class DirService {
         }
         boolean exists = dirRepository.exists(new LambdaQueryWrapper<DirEntity>()
                 .eq(DirEntity::getUserId, UserUtil.getUserInfo().getUserId())
-                .eq(DirEntity::getParentId, dirEntity.getParentId())
+                .eq(DirEntity::getParentId, request.getParentId())
                 .eq(DirEntity::getName, request.getName())
                 .ne(DirEntity::getId, request.getId())
         );
