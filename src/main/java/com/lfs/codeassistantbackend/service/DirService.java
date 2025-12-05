@@ -71,7 +71,7 @@ public class DirService {
      * 修改目录
      * @param request 修改目录
      */
-    public DirTreeResponse update(DirRequest request){
+    public Long update(DirRequest request){
         DirEntity dirEntity = dirRepository.selectById(request.getId());
         if (null == dirEntity) {
             throw new BizException("目录不存在");
@@ -88,8 +88,7 @@ public class DirService {
         dirEntity.setName(request.getName());
         dirEntity.setParentId(request.getParentId());
         dirRepository.updateById(dirEntity);
-        DirTreeResponse dirTreeResponse = BeanUtil.copyProperties(dirEntity, DirTreeResponse.class);
-        return dirTreeResponse.getTree();
+        return dirEntity.getParentId();
     }
 
     /**

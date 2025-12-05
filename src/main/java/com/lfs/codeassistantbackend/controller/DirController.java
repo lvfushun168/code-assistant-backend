@@ -40,7 +40,7 @@ public class DirController {
      * @return 操作结果
      */
     @PutMapping
-    public Result<DirTreeResponse> update(@RequestBody @Validated(Update.class) DirRequest request){
+    public Result<Long> update(@RequestBody @Validated(Update.class) DirRequest request){
         return Result.success(dirService.update(request));
     }
 
