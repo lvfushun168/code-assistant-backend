@@ -38,4 +38,9 @@ public class ContentEntity extends BaseEntity{
      * 内容摘要
      */
     private String contentHash;
+
+    /**
+     * 文档格式
+     */
+    private String type;
 }

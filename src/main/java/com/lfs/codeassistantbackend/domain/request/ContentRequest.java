@@ -21,4 +21,9 @@ public class ContentRequest {
 
     @NotBlank(message = "文档名不能为空")
     private String title;
+
+    /**
+     * 文档类型（txt,json,java,yml等等）
+     */
+    private String type = "txt";
 }

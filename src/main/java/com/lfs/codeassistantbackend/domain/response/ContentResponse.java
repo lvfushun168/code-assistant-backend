@@ -29,4 +29,9 @@ public class ContentResponse {
      */
     private String title;
 
+    /**
+     * 文档类型
+     */
+    private String type;
+
 }
