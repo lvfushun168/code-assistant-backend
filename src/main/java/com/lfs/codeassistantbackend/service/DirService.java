@@ -13,10 +13,10 @@ import com.lfs.codeassistantbackend.repository.DirRepository;
 import com.lfs.codeassistantbackend.utils.UserUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
-import java.util.*;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,8 +32,9 @@ public class DirService {
      * @param user 用户信息
      */
     public void init(UserEntity user) {
+        String nickname = user.getNickname();
         dirRepository.insert(DirEntity.builder()
-                .name(user.getNickname())
+                .name(StringUtils.isEmpty(nickname) ? "个人目录" : nickname + "的目录")
                 .userId(user.getId())
                 .build());
     }
