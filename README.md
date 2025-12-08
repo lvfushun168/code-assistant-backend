@@ -181,3 +181,8 @@ docker run -d \
 容器启动后，服务将在 `http://<your-host-ip>:6324/lfs-code-assistant` 上可用。
 
 **注意**: `deploy.sh` 脚本提供了更复杂的自动化部署流程，包括管理本地 Docker 仓库，但对于大多数标准部署场景，以上手动步骤已足够。
+
+### 5. 发布
+在把deploy放到服务器/lfs/project目录后，根据你本地环境执行下面脚本进行部署。
+* win：先安装[PuTTY](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)，再执行plink root@8.148.146.195将主机密钥保存到本地（无需输入密码），然后执行publish-win.bat
+* mac：直接执行publish-mac.sh
