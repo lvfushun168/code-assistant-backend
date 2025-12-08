@@ -134,6 +134,13 @@
             <version>31.1-jre</version>
         </dependency>
 
+        <!-- Argon2 和高级加密操作 -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15to18</artifactId>
+            <version>1.70</version>
+        </dependency>
+
     </dependencies>
     <dependencyManagement>
         <dependencies>

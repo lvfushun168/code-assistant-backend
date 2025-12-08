@@ -5,10 +5,7 @@ import com.lfs.codeassistantbackend.domain.request.UserRequest;
 import com.lfs.codeassistantbackend.service.AccountService;
 import lombok.AllArgsConstructor;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.lfs.codeassistantbackend.domain.request.LoginRequest;
 
@@ -41,6 +38,17 @@ public class AccountController {
     @PostMapping("/login")
     public Result<String> login(@RequestBody @Validated LoginRequest request) {
         return Result.success(accountService.login(request));
+    }
+
+    /**
+     * 获取用户密钥包
+     * 用于新设备首次登录时，拉取加密的 DEK 并在本地恢复
+     * @param username 用户名
+     * @return 密钥包数据
+     */
+    @GetMapping("/key-package")
+    public Result<?> getKeyPackage(@RequestParam String username) {
+        return Result.success(accountService.getKeyPackage(username));
     }
 
 }

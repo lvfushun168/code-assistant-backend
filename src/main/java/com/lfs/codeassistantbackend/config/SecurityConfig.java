@@ -48,7 +48,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
-                .authorizeRequests().antMatchers("/account/register", "/account/login", "/captcha/generate").permitAll()
+                .authorizeRequests()
+                // 放行注册、登录、验证码和密钥包获取接口
+                .antMatchers("/account/register", "/account/login", "/captcha/generate", "/account/key-package").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .exceptionHandling()
