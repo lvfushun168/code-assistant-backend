@@ -32,7 +32,7 @@ IF NOT EXIST "%JAR_PATH%" (
 REM --- Deployment ---
 
 echo Uploading JAR file to %REMOTE_HOST%...
-pscp -pw %S_PASSWORD% -hostkey * "%JAR_PATH%" "%REMOTE_USER%@%REMOTE_HOST%:%REMOTE_DIR%/%REMOTE_JAR_NAME%"
+pscp  -batch -pw %S_PASSWORD% "%JAR_PATH%" "%REMOTE_USER%@%REMOTE_HOST%:%REMOTE_DIR%/%REMOTE_JAR_NAME%"
 IF ERRORLEVEL 1 (
     echo [ERROR] JAR file upload failed.
     goto:eof
@@ -42,7 +42,7 @@ echo Upload complete.
 echo ----------------------------------------------------
 
 echo Executing deployment script on %REMOTE_HOST%...
-plink -pw %S_PASSWORD% "%REMOTE_USER%@%REMOTE_HOST%" "sh %REMOTE_DIR%/deploy.sh %REMOTE_DIR%/%REMOTE_JAR_NAME%"
+plink  -batch -pw %S_PASSWORD% "%REMOTE_USER%@%REMOTE_HOST%" "sh %REMOTE_DIR%/deploy.sh %REMOTE_DIR%/%REMOTE_JAR_NAME%"
 IF ERRORLEVEL 1 (
     echo [ERROR] Failed to execute remote deployment script.
     goto:eof
