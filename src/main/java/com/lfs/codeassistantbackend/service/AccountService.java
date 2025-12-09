@@ -67,17 +67,16 @@ public class AccountService {
         UserEntity user = new UserEntity();
         BeanUtil.copyProperties(request, user, CopyOptions.create().setIgnoreNullValue(true));
 
-        // 1. 设置登录密码 (用于获取JWT Token, 依然使用 BCrypt)
+        // 设置登录密码 (用于获取JWT Token, 依然使用 BCrypt)
         user.setPassword(passwordEncoder.encode(DigestUtil.sha256Hex(request.getPassword())));
 
-        // 2. 生成端到端加密密钥包 (Client-Side Encryption Vault)
+        // 生成端到端加密密钥包 (Client-Side Encryption Vault)
         try {
             generateAndEncryptDek(user, request.getPassword());
         } catch (Exception e) {
             log.error("密钥生成失败", e);
             throw new BizException("密钥生成失败，请重试");
         }
-
         userRepository.insert(user);
         // 初始化用户目录
         dirService.init(user);
@@ -89,17 +88,13 @@ public class AccountService {
      * @return 密钥包
      */
     public KeyPackageResponse getKeyPackage(String username) {
-        UserEntity user = userRepository.selectOne(new LambdaQueryWrapper<UserEntity>()
-                .eq(UserEntity::getUsername, username));
-
+        UserEntity user = userRepository.selectOne(new LambdaQueryWrapper<UserEntity>().eq(UserEntity::getUsername, username));
         if (user == null) {
             throw new BizException("用户不存在");
         }
-
         if (StringUtils.isAnyBlank(user.getDekSalt(), user.getDekEncrypted(), user.getDekNonce())) {
             throw new BizException("该用户未启用设备信任加密，请联系管理员重置");
         }
-
         return KeyPackageResponse.builder()
                 .salt(user.getDekSalt())
                 .encryptedDek(user.getDekEncrypted())
@@ -111,8 +106,8 @@ public class AccountService {
     }
 
     /**
-     * 核心逻辑：生成 DEK 并用 Password 派生的 KEK 加密
-     * 服务端全程只在内存处理，绝不落盘明文 DEK
+     * 生成 DEK 并用 Password 派生的 KEK 加密
+     * 服务端全程只在内存处理，不落盘明文DEK
      */
     private void generateAndEncryptDek(UserEntity user, String plainPassword) throws Exception {
         SecureRandom secureRandom = new SecureRandom();
