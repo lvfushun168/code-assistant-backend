@@ -4,17 +4,20 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.codec.Base64;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.lfs.codeassistantbackend.domain.request.ChangePasswordRequest;
 import com.lfs.codeassistantbackend.domain.request.UserRequest;
 import com.lfs.codeassistantbackend.domain.entity.UserEntity;
 import com.lfs.codeassistantbackend.domain.response.KeyPackageResponse;
 import com.lfs.codeassistantbackend.exception.BizException;
 import com.lfs.codeassistantbackend.repository.UserRepository;
+import com.lfs.codeassistantbackend.utils.UserUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.crypto.generators.Argon2BytesGenerator;
 import org.bouncycastle.crypto.params.Argon2Parameters;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
@@ -33,6 +36,7 @@ import javax.servlet.http.Cookie;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.Optional;
 
 import cn.hutool.crypto.digest.DigestUtil;
 import com.google.common.cache.Cache;
@@ -81,6 +85,41 @@ public class AccountService {
         // 初始化用户目录
         dirService.init(user);
     }
+
+    /**
+     * 修改密码
+     * @param request 请求体，包含旧密码和新密码
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void changePassword(ChangePasswordRequest request) {
+        // 1. 获取当前登录用户
+        Long userId = Optional.ofNullable(UserUtil.getUserInfo()).map(com.lfs.codeassistantbackend.domain.dto.UserDto::getUserId).orElseThrow(() -> new BizException("用户未登录"));
+        UserEntity user = userRepository.selectById(userId);
+        if (user == null) {
+            throw new BizException("用户不存在");
+        }
+
+        // 2. 验证旧密码
+        String hashedOldPassword = DigestUtil.sha256Hex(request.getOldPassword());
+        if (!passwordEncoder.matches(hashedOldPassword, user.getPassword())) {
+            throw new BizException("旧密码错误");
+        }
+
+        // 3. 更新为新密码
+        user.setPassword(passwordEncoder.encode(DigestUtil.sha256Hex(request.getNewPassword())));
+
+        // 4. 使用新密码重新生成和加密DEK
+        try {
+            generateAndEncryptDek(user, request.getNewPassword());
+        } catch (Exception e) {
+            log.error("修改密码时，重新生成密钥包失败", e);
+            throw new BizException("密钥更新失败，请重试");
+        }
+
+        // 5. 保存到数据库
+        userRepository.updateById(user);
+    }
+
 
     /**
      * 获取用户的加密密钥包

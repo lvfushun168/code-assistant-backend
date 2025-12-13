@@ -1,6 +1,7 @@
 package com.lfs.codeassistantbackend.controller;
 
 import com.lfs.codeassistantbackend.common.Result;
+import com.lfs.codeassistantbackend.domain.request.ChangePasswordRequest;
 import com.lfs.codeassistantbackend.domain.request.UserRequest;
 import com.lfs.codeassistantbackend.service.AccountService;
 import lombok.AllArgsConstructor;
@@ -49,6 +50,17 @@ public class AccountController {
     @GetMapping("/key-package")
     public Result<?> getKeyPackage(@RequestParam String username) {
         return Result.success(accountService.getKeyPackage(username));
+    }
+
+    /**
+     * 修改密码
+     * @param request 包含旧密码和新密码
+     * @return 成功或失败
+     */
+    @PostMapping("/change-password")
+    public Result<?> changePassword(@RequestBody @Validated ChangePasswordRequest request) {
+        accountService.changePassword(request);
+        return Result.success("密码修改成功");
     }
 
 }
