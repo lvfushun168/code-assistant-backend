@@ -389,7 +389,19 @@ public class CloudFsService {
                 .eq(ContentEntity::getDirId, dir.getId()));
         
         for (ContentEntity content : contents) {
-            String entryName = currentPath + "/" + content.getTitle();
+            // 使用 type 作为扩展名，如果 type 为空则默认为 txt
+            String extension = content.getType();
+            if (StrUtil.isBlank(extension)) {
+                extension = "txt";
+            }
+            
+            // 构建文件名：如果 title 已包含扩展名则直接使用，否则添加扩展名
+            String fileName = content.getTitle();
+            if (!fileName.contains(".")) {
+                fileName = fileName + "." + extension;
+            }
+            
+            String entryName = currentPath + "/" + fileName;
             java.util.zip.ZipEntry zipEntry = new java.util.zip.ZipEntry(entryName);
             zos.putNextEntry(zipEntry);
             
