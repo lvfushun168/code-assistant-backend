@@ -70,11 +70,35 @@ public class CloudFsController {
     }
 
     /**
+     * 上传 ZIP 文件到云端（通过目录ID）
+     * @param zipFile ZIP 文件
+     * @param dirId 云端目标目录ID
+     * @param override 是否覆盖已存在的文件 (true: 覆盖, false/null: 跳过)
+     */
+    @PostMapping(value = "/upload-zip-by-id", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Result<?> uploadZipById(
+            @RequestPart("file") MultipartFile zipFile,
+            @RequestParam("dirId") Long dirId,
+            @RequestParam(value = "override", required = false, defaultValue = "false") Boolean override) {
+        cloudFsService.uploadZipById(zipFile, dirId, override);
+        return Result.success();
+    }
+
+    /**
      * 从云端下载目录为 ZIP 文件
      * @param path 云端目录路径 (如:/MyProject)
      */
     @GetMapping("/download-zip")
     public void downloadZip(@RequestParam("path") String path, HttpServletResponse response) {
         cloudFsService.downloadZip(path, response);
+    }
+
+    /**
+     * 从云端下载目录为 ZIP 文件（通过目录ID）
+     * @param id 云端目录ID
+     */
+    @GetMapping("/download-zip-by-id")
+    public void downloadZipById(@RequestParam("id") Long id, HttpServletResponse response) {
+        cloudFsService.downloadZipById(id, response);
     }
 }
