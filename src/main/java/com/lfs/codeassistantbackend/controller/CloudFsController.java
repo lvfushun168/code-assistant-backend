@@ -53,4 +53,28 @@ public class CloudFsController {
     public void downloadFile(@RequestParam("path") String path, HttpServletResponse response) {
         cloudFsService.downloadFile(path, response);
     }
+
+    /**
+     * 上传 ZIP 文件到云端（保留目录结构）
+     * @param zipFile ZIP 文件
+     * @param destDir 云端目标目录路径 (如:/MyProject)
+     * @param override 是否覆盖已存在的文件 (true: 覆盖, false/null: 跳过)
+     */
+    @PostMapping(value = "/upload-zip", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Result<?> uploadZip(
+            @RequestPart("file") MultipartFile zipFile,
+            @RequestParam("destDir") String destDir,
+            @RequestParam(value = "override", required = false, defaultValue = "false") Boolean override) {
+        cloudFsService.uploadZip(zipFile, destDir, override);
+        return Result.success();
+    }
+
+    /**
+     * 从云端下载目录为 ZIP 文件
+     * @param path 云端目录路径 (如:/MyProject)
+     */
+    @GetMapping("/download-zip")
+    public void downloadZip(@RequestParam("path") String path, HttpServletResponse response) {
+        cloudFsService.downloadZip(path, response);
+    }
 }

@@ -17,11 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
+import java.nio.file.Files;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -98,6 +98,317 @@ public class CloudFsService {
         } catch (IOException e) {
             log.error("下载流写入失败", e);
             throw new BizException("文件下载失败");
+        }
+    }
+
+    /**
+     * 上传 ZIP 文件并解压到云端目录（保留目录结构）
+     * @param zipFile 上传的 ZIP 文件
+     * @param destDir 云端目标目录路径 (如:/MyProject)
+     * @param override 是否覆盖已存在的文件
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void uploadZip(MultipartFile zipFile, String destDir, Boolean override) {
+        Long rootDirId = getRootDirId();
+        Long targetDirId = resolveDirId(rootDirId, destDir);
+
+        try {
+            // 创建临时文件用于解压缩
+            File tempZipFile = File.createTempFile("upload_", ".zip");
+            zipFile.transferTo(tempZipFile);
+
+            try (java.util.zip.ZipFile zipFileObj = new java.util.zip.ZipFile(tempZipFile, StandardCharsets.UTF_8)) {
+                java.util.Enumeration<? extends java.util.zip.ZipEntry> entries = zipFileObj.entries();
+                
+                while (entries.hasMoreElements()) {
+                    java.util.zip.ZipEntry entry = entries.nextElement();
+                    String entryName = entry.getName();
+                    
+                    // 跳过目录本身（只处理文件）
+                    if (entry.isDirectory()) {
+                        continue;
+                    }
+                    
+                    // 安全检查：防止路径穿越攻击
+                    validateZipEntry(entryName, targetDirId);
+                    
+                    // 处理文件路径
+                    String[] parts = entryName.split("/");
+                    String fileName = parts[parts.length - 1];
+                    
+                    // 计算相对于目标目录的子路径
+                    String relativePath = "";
+                    if (parts.length > 1) {
+                        relativePath = String.join("/", Arrays.copyOf(parts, parts.length - 1));
+                    }
+                    
+                    // 递归创建目录结构
+                    Long currentDirId = targetDirId;
+                    if (StrUtil.isNotBlank(relativePath)) {
+                        currentDirId = createDirStructure(rootDirId, targetDirId, relativePath);
+                    }
+                    
+                    // 读取 ZIP 中的文件内容
+                    try (InputStream zipInputStream = zipFileObj.getInputStream(entry);
+                         ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                        byte[] buffer = new byte[4096];
+                        int len;
+                        while ((len = zipInputStream.read(buffer)) > 0) {
+                            baos.write(buffer, 0, len);
+                        }
+                        byte[] fileContent = baos.toByteArray();
+                        
+                        // 检查文件是否已存在
+                        ContentEntity existingFile = contentRepository.selectOne(new LambdaQueryWrapper<ContentEntity>()
+                                .eq(ContentEntity::getDirId, currentDirId)
+                                .eq(ContentEntity::getTitle, fileName));
+                        
+                        if (existingFile != null) {
+                            if (!override) {
+                                log.info("文件已存在，跳过: {}", entryName);
+                                continue;
+                            }
+                            // 覆盖已存在的文件
+                            updateFileContentFromBytes(existingFile, fileContent, fileName);
+                        } else {
+                            // 创建新文件
+                            createFileContentFromBytes(currentDirId, fileName, fileContent);
+                        }
+                    }
+                }
+            } finally {
+                // 删除临时文件
+                tempZipFile.delete();
+            }
+        } catch (IOException e) {
+            log.error("ZIP解压失败", e);
+            throw new BizException("ZIP解压失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 验证 ZIP 条目名称，防止路径穿越攻击
+     */
+    private void validateZipEntry(String entryName, Long targetDirId) throws IOException {
+        // 标准化路径分隔符
+        String normalizedName = entryName.replace("\\", "/");
+        
+        // 禁止绝对路径
+        if (normalizedName.startsWith("/")) {
+            throw new BizException("禁止绝对路径: " + entryName);
+        }
+        
+        // 禁止路径穿越 (..)
+        if (normalizedName.contains("..")) {
+            throw new BizException("禁止路径穿越: " + entryName);
+        }
+        
+        // 验证最终路径在目标目录内
+        // 注意：由于我们是通过数据库存储的，这里主要验证名称合法性
+    }
+
+    /**
+     * 创建目录结构（如果不存在）
+     * @param rootDirId 用户根目录ID
+     * @param parentId 父目录ID
+     * @param relativePath 相对路径（如 "src/main/java"）
+     * @return 最终目录的ID
+     */
+    private Long createDirStructure(Long rootDirId, Long parentId, String relativePath) {
+        String[] dirs = relativePath.split("/");
+        Long currentDirId = parentId;
+        
+        for (String dirName : dirs) {
+            if (StrUtil.isBlank(dirName)) continue;
+            
+            // 查找目录是否已存在
+            DirEntity existingDir = dirRepository.selectOne(new LambdaQueryWrapper<DirEntity>()
+                    .eq(DirEntity::getParentId, currentDirId)
+                    .eq(DirEntity::getName, dirName)
+                    .eq(DirEntity::getUserId, UserUtil.getUserInfo().getUserId()));
+            
+            if (existingDir != null) {
+                currentDirId = existingDir.getId();
+            } else {
+                // 创建新目录
+                DirEntity newDir = DirEntity.builder()
+                        .name(dirName)
+                        .parentId(currentDirId)
+                        .userId(UserUtil.getUserInfo().getUserId())
+                        .build();
+                dirRepository.insert(newDir);
+                currentDirId = newDir.getId();
+            }
+        }
+        return currentDirId;
+    }
+
+    /**
+     * 从字节数组创建文件内容
+     */
+    private void createFileContentFromBytes(Long dirId, String filename, byte[] content) {
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(content)) {
+            String filePath = localFileStorage.saveStream(bais);
+            String hash = DigestUtil.sha256Hex(content);
+            
+            ContentEntity entity = ContentEntity.builder()
+                    .dirId(dirId)
+                    .title(filename)
+                    .type(FileUtil.extName(filename))
+                    .filePath(filePath)
+                    .contentHash(hash)
+                    .creator(UserUtil.getUserInfo().getUserId())
+                    .encrypted(true)
+                    .build();
+            
+            contentRepository.insert(entity);
+        } catch (IOException e) {
+            throw new BizException("文件读取失败");
+        }
+    }
+
+    /**
+     * 从字节数组更新文件内容
+     */
+    private void updateFileContentFromBytes(ContentEntity entity, byte[] content, String filename) {
+        String newHash = DigestUtil.sha256Hex(content);
+        
+        if (!newHash.equals(entity.getContentHash())) {
+            // 删除旧文件
+            if (StrUtil.isNotBlank(entity.getFilePath())) {
+                localFileStorage.deleteFile(entity.getFilePath());
+            }
+            // 保存新文件
+            try (ByteArrayInputStream bais = new ByteArrayInputStream(content)) {
+                String newPath = localFileStorage.saveStream(bais);
+                entity.setFilePath(newPath);
+                entity.setContentHash(newHash);
+                entity.setType(FileUtil.extName(filename));
+                contentRepository.updateById(entity);
+            } catch (IOException e) {
+                throw new BizException("文件更新失败");
+            }
+        } else {
+            log.info("文件内容无变化，跳过IO操作: {}", entity.getTitle());
+        }
+    }
+
+    /**
+     * 下载目录为 ZIP 文件
+     * @param path 云端目录路径 (如:/MyProject)
+     * @param response HTTP响应
+     */
+    public void downloadZip(String path, HttpServletResponse response) {
+        Long rootDirId = getRootDirId();
+        
+        // 解析目录实体
+        DirEntity dir = resolveDirEntity(rootDirId, path);
+        
+        try {
+            // 创建临时 ZIP 文件
+            File tempZipFile = File.createTempFile("download_", ".zip");
+            
+            try (java.util.zip.ZipOutputStream zos = new java.util.zip.ZipOutputStream(
+                    new FileOutputStream(tempZipFile), StandardCharsets.UTF_8)) {
+                
+                // 递归添加目录内容到 ZIP
+                addDirToZip(zos, dir, "");
+            }
+            
+            // 设置响应头
+            response.reset();
+            response.setContentType("application/zip");
+            response.setCharacterEncoding("utf-8");
+            String zipName = dir.getName() + ".zip";
+            String encodedName = URLEncoder.encode(zipName, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+            response.setHeader("Content-Disposition", "attachment;filename*=utf-8''" + encodedName);
+            
+            // 写入响应流
+            try (FileInputStream fis = new FileInputStream(tempZipFile);
+                 OutputStream os = response.getOutputStream()) {
+                byte[] buffer = new byte[4096];
+                int len;
+                while ((len = fis.read(buffer)) > 0) {
+                    os.write(buffer, 0, len);
+                }
+                os.flush();
+            }
+            
+            // 删除临时文件
+            tempZipFile.delete();
+            
+        } catch (IOException e) {
+            log.error("ZIP压缩失败", e);
+            throw new BizException("ZIP压缩失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 解析目录实体
+     */
+    private DirEntity resolveDirEntity(Long rootDirId, String path) {
+        path = StrUtil.trim(path);
+        if (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+        
+        if (StrUtil.isBlank(path)) {
+            // 根目录
+            return dirRepository.selectById(rootDirId);
+        }
+        
+        List<String> parts = Arrays.stream(path.split("/"))
+                .filter(StrUtil::isNotBlank)
+                .collect(Collectors.toList());
+        
+        Long currentDirId = rootDirId;
+        
+        for (String dirName : parts) {
+            DirEntity dir = dirRepository.selectOne(new LambdaQueryWrapper<DirEntity>()
+                    .eq(DirEntity::getParentId, currentDirId)
+                    .eq(DirEntity::getName, dirName)
+                    .eq(DirEntity::getUserId, UserUtil.getUserInfo().getUserId()));
+            
+            if (dir == null) {
+                throw new BizException("云端目录不存在: " + dirName);
+            }
+            currentDirId = dir.getId();
+        }
+        
+        return dirRepository.selectById(currentDirId);
+    }
+
+    /**
+     * 递归添加目录内容到 ZIP
+     */
+    private void addDirToZip(java.util.zip.ZipOutputStream zos, DirEntity dir, String parentPath) throws IOException {
+        String currentPath = parentPath.isEmpty() ? dir.getName() : parentPath + "/" + dir.getName();
+        
+        // 添加当前目录下的文件
+        List<ContentEntity> contents = contentRepository.selectList(new LambdaQueryWrapper<ContentEntity>()
+                .eq(ContentEntity::getDirId, dir.getId()));
+        
+        for (ContentEntity content : contents) {
+            String entryName = currentPath + "/" + content.getTitle();
+            java.util.zip.ZipEntry zipEntry = new java.util.zip.ZipEntry(entryName);
+            zos.putNextEntry(zipEntry);
+            
+            // 读取文件内容并写入 ZIP
+            try {
+                byte[] fileContent = localFileStorage.readContent(content.getFilePath()).getBytes(StandardCharsets.UTF_8);
+                zos.write(fileContent);
+            } catch (Exception e) {
+                log.error("读取文件失败: {}", content.getTitle(), e);
+            }
+            zos.closeEntry();
+        }
+        
+        // 递归处理子目录
+        List<DirEntity> children = dirRepository.selectList(new LambdaQueryWrapper<DirEntity>()
+                .eq(DirEntity::getParentId, dir.getId()));
+        
+        for (DirEntity child : children) {
+            addDirToZip(zos, child, currentPath);
         }
     }
 
