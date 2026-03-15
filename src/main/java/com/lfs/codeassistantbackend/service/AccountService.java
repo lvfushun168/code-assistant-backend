@@ -212,6 +212,16 @@ public class AccountService {
         return cipher.doFinal(plaintext);
     }
 
+    public String renewToken() {
+        Long userId = Optional.ofNullable(UserUtil.getUserInfo()).map(com.lfs.codeassistantbackend.domain.dto.UserDto::getUserId).orElseThrow(() -> new BizException("用户未登录"));
+        UserEntity user = userRepository.selectById(userId);
+        if (user == null) {
+            throw new BizException("用户不存在");
+        }
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
+        return jwtUtil.generateToken(userDetails);
+    }
+
     /**
      * 验证码校验（仅Linux环境）
      * @param captcha 用户输入的验证码

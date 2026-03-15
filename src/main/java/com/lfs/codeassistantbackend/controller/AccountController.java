@@ -63,4 +63,14 @@ public class AccountController {
         return Result.success("密码修改成功");
     }
 
+    /**
+     * 续期 Token
+     * 用户活跃时调用，颁发一个新 token
+     * @return 新 token
+     */
+    @PostMapping("/renew-token")
+    public Result<String> renewToken() {
+        return Result.success(accountService.renewToken());
+    }
+
 }
